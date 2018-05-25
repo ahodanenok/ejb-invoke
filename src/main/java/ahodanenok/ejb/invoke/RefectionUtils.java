@@ -1,45 +1,41 @@
 package ahodanenok.ejb.invoke;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 public final class RefectionUtils {
 
     private RefectionUtils() { }
 
     public List<Class> toClasses(List<String> classNames) {
-        Class[] params = new Class[argClassNames.length];
         try {
-            LOGGER.fine("Loading argument classes");
-            if (LOGGER.isLoggable(Level.FINEST)) {
-                LOGGER.finest("Argument classes: " + Arrays.toString(argClassNames));
-            }
+            List<Class> classes = new ArrayList<Class>(classNames.size());
 
             String argClass;
-            for (int i = 0; i < argClassNames.length; i++) {
-                argClass = argClassNames[i];
+            for (int i = 0; i < classNames.size(); i++) {
+                argClass = classNames.get(i);
                 if ("double".equals(argClass)) {
-                    params[i] = double.class;
+                    classes.add(double.class);
                 } else if ("float".equals(argClass)) {
-                    params[i] = float.class;
+                    classes.add(float.class);
                 } else if ("byte".equals(argClass)) {
-                    params[i] = byte.class;
+                    classes.add(byte.class);
                 } else if ("short".equals(argClass)) {
-                    params[i] = short.class;
+                    classes.add(short.class);
                 } else if ("int".equals(argClass)) {
-                    params[i] = int.class;
+                    classes.add(int.class);
                 } else if ("long".equals(argClass)) {
-                    params[i] = long.class;
+                    classes.add(long.class);
                 } else if ("boolean".equals(argClass)) {
-                    params[i] = boolean.class;
+                    classes.add(boolean.class);
                 } else {
-                    params[i] = Class.forName(argClass, true, context.getHECClassLoader());
+                    classes.add(Class.forName(argClass, true, Thread.currentThread().getContextClassLoader()));
                 }
             }
+
+            return classes;
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Invocation failed", e);
-            throw new HECException("Can't load argument classes", e);
+            throw new RuntimeException("Can't load classes", e);
         }
     }
 }
