@@ -35,9 +35,6 @@ public final class EjbInvokeCli {
          */
         String argsFilePath = "args.json";
 
-
-        // todo: register ClassLoader with Ejb implementations/interfaces
-
         setUpClassLoader();
 
         EjbInvokeContext context = new EjbInvokeContext();
