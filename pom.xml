@@ -26,43 +26,5 @@
             <artifactId>gson</artifactId>
             <version>2.8.5</version>
         </dependency>
-
-
-        <dependency>
-            <groupId>ahodanenok.ejb</groupId>
-            <artifactId>ejb</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.openejb</groupId>
-            <artifactId>openejb-client</artifactId>
-            <version>4.7.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.openejb</groupId>
-            <artifactId>javaee-api</artifactId>
-            <version>6.0-6</version>
-        </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.ibm.websphere</groupId>-->
-            <!--<artifactId>ejb.thin</artifactId>-->
-            <!--<version>7.0.0</version>-->
-            <!--<scope>system</scope>-->
-            <!--<systemPath>D:\com.ibm.ws.ejb.thinclient_7.0.0.jar</systemPath>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>com.ibm.websphere</groupId>-->
-            <!--<artifactId>orb</artifactId>-->
-            <!--<version>7.0.0</version>-->
-            <!--<scope>system</scope>-->
-            <!--<systemPath>D:\com.ibm.ws.orb_7.0.0.jar</systemPath>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>apache.tomee</groupId>-->
-            <!--<artifactId>ejb.client</artifactId>-->
-            <!--<version>4.7.4</version>-->
-            <!--<scope>system</scope>-->
-            <!--<systemPath>D:\tools\apache-tomee-webprofile-1.7.4\lib\openejb-client-4.7.4.jar</systemPath>-->
-        <!--</dependency>-->
     </dependencies>
 </project>

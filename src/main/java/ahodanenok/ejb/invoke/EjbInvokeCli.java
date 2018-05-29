@@ -47,16 +47,19 @@ public final class EjbInvokeCli {
     }
 
     private static void setUpClassLoader(List<String> paths) {
+        List<String> classPath = new ArrayList<String>();
         try {
-            List<String> classPath = new ArrayList<String>(IOUtils.getLines(CLASSPATH_FILE));
-            if (paths != null) {
-                classPath.addAll(paths);
-            }
-
-            RefectionUtils.createClassLoader(classPath, Thread.currentThread().getContextClassLoader());
+            paths.addAll(IOUtils.getLines(CLASSPATH_FILE));
         } catch (IOException e) {
             // todo: log
         }
+
+        if (paths != null) {
+            classPath.addAll(paths);
+        }
+
+        Thread.currentThread().setContextClassLoader(
+                RefectionUtils.createClassLoader(classPath, Thread.currentThread().getContextClassLoader()));
     }
 
     private static void setUpSystemProperties(Properties properties) {

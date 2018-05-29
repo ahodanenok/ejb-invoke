@@ -54,6 +54,10 @@ public final class RefectionUtils {
             }
         }
 
-        return new URLClassLoader(urls.toArray(new URL[urls.size()]), parent);
+        if (urls.size() > 0) {
+            return new URLClassLoader(urls.toArray(new URL[urls.size()]), parent);
+        } else {
+            return parent;
+        }
     }
 }
