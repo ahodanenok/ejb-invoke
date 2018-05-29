@@ -1,6 +1,11 @@
 package ahodanenok.ejb.invoke;
 
+import java.io.IOException;
+import java.util.List;
+
 public final class EjbInvokeCli {
+
+    private static final String CLASSPATH_FILE = "classpath";
 
     public static void main(String[] args) {
 
@@ -33,6 +38,7 @@ public final class EjbInvokeCli {
 
         // todo: register ClassLoader with Ejb implementations/interfaces
 
+        setUpClassLoader();
 
         EjbInvokeContext context = new EjbInvokeContext();
 
@@ -46,6 +52,15 @@ public final class EjbInvokeCli {
             System.out.println(response.getError().getMessage());
         } else {
             System.out.println("Unknown response status: " + response.getStatus());
+        }
+    }
+
+    private static void setUpClassLoader() {
+        try {
+            List<String> paths = IOUtils.getLines(CLASSPATH_FILE);
+            RefectionUtils.createClassLoader(paths, Thread.currentThread().getContextClassLoader());
+        } catch (IOException e) {
+            // todo: log
         }
     }
 }
