@@ -20,4 +20,12 @@ public final class EjbMethodArguments {
         // todo: out of bounds
         return arguments.get(pos);
     }
+
+    public Object[] getArguments() {
+        return arguments.toArray();
+    }
+
+    public Class[] getArgumentClasses() {
+        return new Class[0];
+    }
 }

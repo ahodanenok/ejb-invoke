@@ -5,9 +5,14 @@ public final class EjbInvokeCli {
     public static void main(String[] args) {
 
         // todo: get these from args
-        String jndiName = "";
-        String className = "";
-        String methodName = "";
+
+//            Object found = PortableRemoteObject.narrow(context.lookup("corbaloc:iiop:localhost:2809/NameService#ejb/global/ear-1\\.0-SNAPSHOT/ahodanenok\\.ejb-ejb-1\\.0-SNAPSHOT/SampleEJB!ahodanenok\\.ejb\\.sample\\.SampleEJBRemote"), SampleEJBRemote.class);
+//            Object found = PortableRemoteObject.narrow(context.lookup("corbaname:iiop:localhost:2809#ejb/global/ear-1\\.0-SNAPSHOT/ahodanenok\\.ejb-ejb-1\\.0-SNAPSHOT/SampleEJB!ahodanenok\\.ejb\\.sample\\.SampleEJBRemote"), SampleEJBRemote.class);
+//            Object found = PortableRemoteObject.narrow(context.lookup("#ejb/global/ear-1.0-SNAPSHOT/ahodanenok.ejb-ejb-1.0-SNAPSHOT/SampleEJB!ahodanenok.ejb.sample.SampleEJBRemote"), SampleEJBRemote.class);
+
+        String jndiName = "global/ear-1.0-SNAPSHOT/ahodanenok.ejb-ejb-1.0-SNAPSHOT/SampleEJB!ahodanenok.ejb.sample.SampleEJBRemote";
+        String className = "ahodanenok.ejb.sample.SampleEJBRemote";
+        String methodName = "remoteMethod";
 
         /*
 
@@ -29,9 +34,11 @@ public final class EjbInvokeCli {
         // todo: register ClassLoader with Ejb implementations/interfaces
 
 
+        EjbInvokeContext context = new EjbInvokeContext();
+
         EjbMethod remoteMethod = new EjbMethod(jndiName, className, methodName);
         EjbMethodArguments methodArguments = EjbMethodArguments.parseFile(argsFilePath);
-        EjbMethodResponse response = remoteMethod.call(methodArguments);
+        EjbMethodResponse response = remoteMethod.call(methodArguments, context);
 
         if (response.getStatus() == EjbMethodResponse.Status.SUCCESS) {
             System.out.println(response.getData());
