@@ -1,4 +1,4 @@
-package ahodanenok.ejb.invoke.json;
+package ahodanenok.ejb.invoke.formats;
 
 import ahodanenok.ejb.invoke.descriptor.EjbInvocationArgument;
 import com.google.gson.*;
@@ -14,14 +14,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class JsonProcessor {
+public class JsonFormat {
 
     private Gson gson;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     private List<SimpleDateFormat> parseDateFormats = new ArrayList<SimpleDateFormat>();;
 
-    public JsonProcessor() {
+    public JsonFormat() {
         String dateFormatPattern = System.getProperty("ejb.invoke.date.format");
         if (dateFormatPattern != null) {
             // todo: log

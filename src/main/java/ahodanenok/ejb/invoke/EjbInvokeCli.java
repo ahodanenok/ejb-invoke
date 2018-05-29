@@ -1,5 +1,8 @@
 package ahodanenok.ejb.invoke;
 
+import ahodanenok.ejb.invoke.descriptor.EjbInvocationDescriptor;
+import ahodanenok.ejb.invoke.formats.JsonFormat;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
@@ -10,40 +13,27 @@ public final class EjbInvokeCli {
     private static final String SYSTEM_PROPERTIES_FILE = "system.properties";
 
     public static void main(String[] args) {
+        if (args.length == 0) {
+            // todo: show message
+            return;
+        }
 
-        // todo: get these from args
-
-//            Object found = PortableRemoteObject.narrow(context.lookup("corbaloc:iiop:localhost:2809/NameService#ejb/global/ear-1\\.0-SNAPSHOT/ahodanenok\\.ejb-ejb-1\\.0-SNAPSHOT/SampleEJB!ahodanenok\\.ejb\\.sample\\.SampleEJBRemote"), SampleEJBRemote.class);
-//            Object found = PortableRemoteObject.narrow(context.lookup("corbaname:iiop:localhost:2809#ejb/global/ear-1\\.0-SNAPSHOT/ahodanenok\\.ejb-ejb-1\\.0-SNAPSHOT/SampleEJB!ahodanenok\\.ejb\\.sample\\.SampleEJBRemote"), SampleEJBRemote.class);
-//            Object found = PortableRemoteObject.narrow(context.lookup("#ejb/global/ear-1.0-SNAPSHOT/ahodanenok.ejb-ejb-1.0-SNAPSHOT/SampleEJB!ahodanenok.ejb.sample.SampleEJBRemote"), SampleEJBRemote.class);
-
-        String jndiName = "global/ear-1.0-SNAPSHOT/ahodanenok.ejb-ejb-1.0-SNAPSHOT/SampleEJB!ahodanenok.ejb.sample.SampleEJBRemote";
-        String className = "ahodanenok.ejb.sample.SampleEJBRemote";
-        String methodName = "remoteMethod";
-
-        /*
-
-        [
-          {
-            type: boolean,
-            value: true
-          },
-          {
-            type: java.util.List,
-            value: [0, 1, 2, 3, 4]
-          }
-        ]
-
-         */
-        String argsFilePath = "args.json";
+        String argsFilePath = args[0];
 
         setUpSystemProperties();
         setUpClassLoader();
 
+        EjbInvocationDescriptor descriptor = new JsonFormat().parse(argsFilePath, EjbInvocationDescriptor.class);
+        if (descriptor == null) {
+            // todo: code
+            System.exit(-1);
+            return;
+        }
+
         EjbInvokeContext context = new EjbInvokeContext();
 
-        EjbMethod remoteMethod = new EjbMethod(jndiName, className, methodName);
-        EjbMethodArguments methodArguments = EjbMethodArguments.parseFile(argsFilePath);
+        EjbMethod remoteMethod = new EjbMethod(descriptor.getJndiName(), descriptor.getClassName(), descriptor.getMethodName());
+        EjbMethodArguments methodArguments = new EjbMethodArguments(descriptor.getArguments());
         EjbMethodResponse response = remoteMethod.call(methodArguments, context);
 
         if (response.getStatus() == EjbMethodResponse.Status.SUCCESS) {

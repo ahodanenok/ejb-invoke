@@ -1,7 +1,14 @@
 package ahodanenok.ejb.invoke.descriptor;
 
-/**
- * Created by ahodanenok on 29.05.2018.
- */
-public class EjbInvocationArgument {
+public final class EjbInvocationArgument {
+
+    private Object value;
+
+    public Object getValue() {
+        return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
+    }
 }

@@ -1,24 +1,19 @@
 package ahodanenok.ejb.invoke;
 
+import ahodanenok.ejb.invoke.descriptor.EjbInvocationArgument;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public final class EjbMethodArguments {
 
-    public static EjbMethodArguments parseFile(String filePath) {
-        // todo: impl
-        return new EjbMethodArguments();
-    }
-
     private List<Object> arguments;
 
-    private EjbMethodArguments() {
+    public EjbMethodArguments(List<EjbInvocationArgument> arguments) {
         this.arguments = new ArrayList<Object>();
-    }
-
-    public Object getArgument(int pos) {
-        // todo: out of bounds
-        return arguments.get(pos);
+        for (EjbInvocationArgument arg : arguments) {
+            this.arguments.add(arg.getValue());
+        }
     }
 
     public Object[] getArguments() {
