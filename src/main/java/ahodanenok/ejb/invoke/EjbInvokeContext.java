@@ -10,6 +10,8 @@ import java.util.Properties;
 
 public class EjbInvokeContext {
 
+    private static final String PROPERTIES_FILE_NAME = "context.properties";
+
     private InitialContext context;
 
     public EjbInvokeContext() { }
@@ -32,7 +34,7 @@ public class EjbInvokeContext {
         }
 
         try {
-            Properties properties = new Properties();
+            Properties properties = PropertiesUtils.fromFile(PROPERTIES_FILE_NAME);
 //            properties.setProperty(InitialContext.PROVIDER_URL, "corbaloc:iiop:localhost:2809");///NameService");
 //            properties.setProperty(InitialContext.PROVIDER_URL, "iiop://localhost:2809");///NameService");
             properties.put(Context.INITIAL_CONTEXT_FACTORY, "org.apache.openejb.client.RemoteInitialContextFactory");
