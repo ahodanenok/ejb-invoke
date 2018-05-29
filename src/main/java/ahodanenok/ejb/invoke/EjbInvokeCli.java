@@ -4,6 +4,7 @@ import ahodanenok.ejb.invoke.descriptor.EjbInvocationDescriptor;
 import ahodanenok.ejb.invoke.formats.JsonFormat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -18,19 +19,19 @@ public final class EjbInvokeCli {
             return;
         }
 
-        String argsFilePath = args[0];
+        String descriptorPath = args[0];
 
-        setUpSystemProperties();
-        setUpClassLoader();
-
-        EjbInvocationDescriptor descriptor = new JsonFormat().parse(argsFilePath, EjbInvocationDescriptor.class);
+        EjbInvocationDescriptor descriptor = new JsonFormat().parse(descriptorPath, EjbInvocationDescriptor.class);
         if (descriptor == null) {
             // todo: code
             System.exit(-1);
             return;
         }
 
-        EjbInvokeContext context = new EjbInvokeContext();
+        setUpSystemProperties(descriptor.getSystemProperties());
+        setUpClassLoader(descriptor.getClassPath());
+
+        EjbInvokeContext context = new EjbInvokeContext(descriptor.getContextProperties());
 
         EjbMethod remoteMethod = new EjbMethod(descriptor.getJndiName(), descriptor.getClassName(), descriptor.getMethodName());
         EjbMethodArguments methodArguments = new EjbMethodArguments(descriptor.getArguments());
@@ -45,19 +46,28 @@ public final class EjbInvokeCli {
         }
     }
 
-    private static void setUpClassLoader() {
+    private static void setUpClassLoader(List<String> paths) {
         try {
-            List<String> paths = IOUtils.getLines(CLASSPATH_FILE);
-            RefectionUtils.createClassLoader(paths, Thread.currentThread().getContextClassLoader());
+            List<String> classPath = new ArrayList<String>(IOUtils.getLines(CLASSPATH_FILE));
+            if (paths != null) {
+                classPath.addAll(paths);
+            }
+
+            RefectionUtils.createClassLoader(classPath, Thread.currentThread().getContextClassLoader());
         } catch (IOException e) {
             // todo: log
         }
     }
 
-    private static void setUpSystemProperties() {
-        Properties properties = PropertiesUtils.fromFile(SYSTEM_PROPERTIES_FILE);
-        for (String prop : properties.stringPropertyNames()) {
+    private static void setUpSystemProperties(Properties properties) {
+        for (String prop : PropertiesUtils.fromFile(SYSTEM_PROPERTIES_FILE).stringPropertyNames()) {
             System.setProperty(prop, properties.getProperty(prop));
+        }
+
+        if (properties != null) {
+            for (String prop : properties.stringPropertyNames()) {
+                System.setProperty(prop, properties.getProperty(prop));
+            }
         }
     }
 }
