@@ -2,10 +2,12 @@ package ahodanenok.ejb.invoke;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 
 public final class EjbInvokeCli {
 
     private static final String CLASSPATH_FILE = "classpath";
+    private static final String SYSTEM_PROPERTIES_FILE = "system.properties";
 
     public static void main(String[] args) {
 
@@ -35,6 +37,7 @@ public final class EjbInvokeCli {
          */
         String argsFilePath = "args.json";
 
+        setUpSystemProperties();
         setUpClassLoader();
 
         EjbInvokeContext context = new EjbInvokeContext();
@@ -58,6 +61,13 @@ public final class EjbInvokeCli {
             RefectionUtils.createClassLoader(paths, Thread.currentThread().getContextClassLoader());
         } catch (IOException e) {
             // todo: log
+        }
+    }
+
+    private static void setUpSystemProperties() {
+        Properties properties = PropertiesUtils.fromFile(SYSTEM_PROPERTIES_FILE);
+        for (String prop : properties.stringPropertyNames()) {
+            System.setProperty(prop, properties.getProperty(prop));
         }
     }
 }
