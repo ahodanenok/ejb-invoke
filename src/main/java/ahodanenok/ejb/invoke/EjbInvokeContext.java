@@ -1,5 +1,7 @@
 package ahodanenok.ejb.invoke;
 
+import ahodanenok.ejb.invoke.util.PropertiesUtils;
+
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.rmi.PortableRemoteObject;

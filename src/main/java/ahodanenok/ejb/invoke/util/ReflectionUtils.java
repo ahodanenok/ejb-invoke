@@ -1,4 +1,4 @@
-package ahodanenok.ejb.invoke;
+package ahodanenok.ejb.invoke.util;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -7,9 +7,9 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class RefectionUtils {
+public final class ReflectionUtils {
 
-    private RefectionUtils() { }
+    private ReflectionUtils() { }
 
     public List<Class> toClasses(List<String> classNames) {
         try {

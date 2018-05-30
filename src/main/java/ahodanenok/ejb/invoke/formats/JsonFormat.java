@@ -1,6 +1,7 @@
 package ahodanenok.ejb.invoke.formats;
 
 import ahodanenok.ejb.invoke.descriptor.EjbInvocationArgument;
+import ahodanenok.ejb.invoke.util.StringUtils;
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -23,14 +24,14 @@ public class JsonFormat {
 
     public JsonFormat() {
         String dateFormatPattern = System.getProperty("ejb.invoke.date.format");
-        if (dateFormatPattern != null) {
+        if (!StringUtils.isNullOrEmpty(dateFormatPattern)) {
             // todo: log
             dateFormat = new SimpleDateFormat(dateFormatPattern);
         }
 
 
         String formats = System.getProperty("ejb.invoke.date.parse.formats");
-        if (formats != null) {
+        if (!StringUtils.isNullOrEmpty(formats)) {
             // todo: log
             for (String format : formats.split(";")) {
                 parseDateFormats.add(new SimpleDateFormat(format.trim()));

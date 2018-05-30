@@ -2,6 +2,9 @@ package ahodanenok.ejb.invoke;
 
 import ahodanenok.ejb.invoke.descriptor.EjbInvocationDescriptor;
 import ahodanenok.ejb.invoke.formats.JsonFormat;
+import ahodanenok.ejb.invoke.util.IOUtils;
+import ahodanenok.ejb.invoke.util.PropertiesUtils;
+import ahodanenok.ejb.invoke.util.ReflectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,7 +84,7 @@ public final class EjbInvokeCli {
         }
 
         Thread.currentThread().setContextClassLoader(
-                RefectionUtils.createClassLoader(classPath, Thread.currentThread().getContextClassLoader()));
+                ReflectionUtils.createClassLoader(classPath, Thread.currentThread().getContextClassLoader()));
     }
 
     private static void setUpSystemProperties(Properties properties) {

@@ -1,4 +1,4 @@
-package ahodanenok.ejb.invoke;
+package ahodanenok.ejb.invoke.util;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
