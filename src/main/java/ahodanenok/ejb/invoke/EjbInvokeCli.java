@@ -6,15 +6,21 @@ import ahodanenok.ejb.invoke.util.IOUtils;
 import ahodanenok.ejb.invoke.util.PropertiesUtils;
 import ahodanenok.ejb.invoke.util.ReflectionUtils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class EjbInvokeCli {
 
-    private static final String CLASSPATH_FILE = "classpath";
-    private static final String SYSTEM_PROPERTIES_FILE = "system.properties";
+    private static final Logger LOGGER = Logger.getLogger(EjbInvokeCli.class.getName());
+
+    private static final File CLASSPATH_FILE = new File("classpath");
+    private static final File SYSTEM_PROPERTIES_FILE = new File("system.properties");
 
     private static final int GENERIC_ERROR_CODE = 1;
     private static final int INVOCATION_ERROR_CODE = 2;
@@ -28,17 +34,21 @@ public final class EjbInvokeCli {
             return;
         }
 
+        setUpExceptionHandler();
+        setUpSystemProperties();
+        setUpClassLoader();
+
         String descriptorPath = args[0];
 
-        EjbInvocationDescriptor descriptor = new JsonFormat().parse(descriptorPath, EjbInvocationDescriptor.class);
+        JsonFormat format = new JsonFormat();
+        EjbInvocationDescriptor descriptor = format.parse(descriptorPath, EjbInvocationDescriptor.class);
         if (descriptor == null) {
+            LOGGER.severe("Invocation descriptor is null");
             System.exit(INVOCATION_DESCRIPTOR_LOADING_ERROR_CODE);
             return;
         }
 
-        setUpSystemProperties(descriptor.getSystemProperties());
-        setUpClassLoader(descriptor.getClassPath());
-        setUpExceptionHandler();
+        setUpSystemPropertiesFromDescriptor(descriptor);
 
         EjbInvokeContext context = new EjbInvokeContext(descriptor.getContextProperties());
 
@@ -48,12 +58,13 @@ public final class EjbInvokeCli {
         try {
             response = remoteMethod.call(methodArguments, context);
         } catch (EjbInvokeException e) {
+            LOGGER.log(Level.SEVERE, "Invocation failed", e);
             System.exit(INVOCATION_ERROR_CODE);
             return;
         }
 
         if (response.getStatus() == EjbMethodResponse.Status.SUCCESS) {
-            System.out.println(response.getData());
+            System.out.println(format.format(response.getData()));
         } else if (response.getStatus() == EjbMethodResponse.Status.ERROR) {
             System.out.println(response.getError().getMessage());
         } else {
@@ -62,38 +73,80 @@ public final class EjbInvokeCli {
     }
 
     private static void setUpExceptionHandler() {
+        LOGGER.finer("Setting up default exception handler");
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
-                // todo: log
+                LOGGER.log(Level.SEVERE, "Error", e);
                 System.exit(GENERIC_ERROR_CODE);
             }
         });
     }
 
-    private static void setUpClassLoader(List<String> paths) {
+    private static void setUpClassLoader() {
+        LOGGER.finer("Setting up classpath from config file");
+
         List<String> classPath = new ArrayList<String>();
-        try {
-            paths.addAll(IOUtils.getLines(CLASSPATH_FILE));
-        } catch (IOException e) {
-            // todo: log
+        if (CLASSPATH_FILE.exists()) {
+            try {
+                LOGGER.finer("Reading classpath config file");
+                classPath.addAll(IOUtils.getLines(CLASSPATH_FILE));
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, String.format("Can't read classpath config file '%s'", CLASSPATH_FILE), e);
+            }
         }
 
-        if (paths != null) {
-            classPath.addAll(paths);
+        if (LOGGER.isLoggable(Level.CONFIG)) {
+            LOGGER.config("Classpath from classpath config file:");
+            if (classPath.size() == 0) {
+                LOGGER.config("  -- None --");
+            }
+
+            for (String path : classPath) {
+                LOGGER.config("  " + path);
+            }
         }
 
         Thread.currentThread().setContextClassLoader(
                 ReflectionUtils.createClassLoader(classPath, Thread.currentThread().getContextClassLoader()));
     }
 
-    private static void setUpSystemProperties(Properties properties) {
-        for (String prop : PropertiesUtils.fromFile(SYSTEM_PROPERTIES_FILE).stringPropertyNames()) {
-            System.setProperty(prop, properties.getProperty(prop));
+    private static void setUpSystemProperties() {
+        LOGGER.finer("Setting up system properties");
+
+        if (SYSTEM_PROPERTIES_FILE.exists()) {
+            LOGGER.finer("Reading system properties config file");
+            Properties fileProperties = PropertiesUtils.fromFile(SYSTEM_PROPERTIES_FILE);
+            LOGGER.config("Properties from system properties config file:");
+            if (LOGGER.isLoggable(Level.CONFIG) && fileProperties.size() == 0) {
+                LOGGER.config("  -- None --");
+            }
+
+            for (String prop : fileProperties.stringPropertyNames()) {
+                if (LOGGER.isLoggable(Level.CONFIG)) {
+                    LOGGER.config(String.format("  %s: %s", prop, fileProperties.getProperty(prop)));
+                }
+
+                System.setProperty(prop, fileProperties.getProperty(prop));
+            }
+        }
+    }
+
+    private static void setUpSystemPropertiesFromDescriptor(EjbInvocationDescriptor descriptor) {
+        Properties properties = descriptor.getSystemProperties();
+
+        LOGGER.config("Properties from invocation descriptor:");
+        if (LOGGER.isLoggable(Level.CONFIG) && (properties == null || properties.size() == 0)) {
+            LOGGER.config("  -- None --");
         }
 
         if (properties != null) {
+            // override with properties from descriptor
             for (String prop : properties.stringPropertyNames()) {
+                if (LOGGER.isLoggable(Level.CONFIG)) {
+                    LOGGER.config(String.format("  %s: %s", prop, properties.getProperty(prop)));
+                }
+
                 System.setProperty(prop, properties.getProperty(prop));
             }
         }

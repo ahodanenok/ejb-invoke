@@ -1,17 +1,17 @@
 package ahodanenok.ejb.invoke.util;
 
-import java.io.BufferedReader;
-import java.io.Closeable;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public final class IOUtils {
 
+    private static final Logger LOGGER = Logger.getLogger(IOUtils.class.getName());
+
     private IOUtils() { }
 
-    public static List<String> getLines(String file) throws IOException {
+    public static List<String> getLines(File file) throws IOException {
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(file));
@@ -28,7 +28,7 @@ public final class IOUtils {
         }
     }
 
-    private static final void close(Closeable closeable) {
+    private static void close(Closeable closeable) {
         if (closeable == null) {
             return;
         }
@@ -36,7 +36,7 @@ public final class IOUtils {
         try {
             closeable.close();
         } catch (IOException e) {
-            // todo: log
+            LOGGER.finer("Couldn't close closable instance, reason: " + e.getMessage());
         }
     }
 }

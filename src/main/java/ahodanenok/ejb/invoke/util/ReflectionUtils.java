@@ -6,8 +6,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public final class ReflectionUtils {
+
+    private static final Logger LOGGER = Logger.getLogger(ReflectionUtils.class.getName());
 
     private ReflectionUtils() { }
 
@@ -50,13 +53,15 @@ public final class ReflectionUtils {
                 urls.add(new File(paths.get(i)).toURI().toURL());
             } catch (MalformedURLException e) {
                 // skipping path if it's not valid
-                // todo: log
+                LOGGER.warning(String.format("path '%s' is not a valid file url", paths.get(i)));
             }
         }
 
         if (urls.size() > 0) {
+            LOGGER.finer("Creating a new classloader");
             return new URLClassLoader(urls.toArray(new URL[urls.size()]), parent);
         } else {
+            LOGGER.finer("Returning parent, urls list is empty");
             return parent;
         }
     }

@@ -1,24 +1,25 @@
 package ahodanenok.ejb.invoke.util;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public final class PropertiesUtils {
 
+    private static final Logger LOGGER = Logger.getLogger(PropertiesUtils.class.getName());
+
     private PropertiesUtils() { }
 
-    public static Properties fromFile(String path) {
+    public static Properties fromFile(File file) {
         Properties properties = new Properties();
 
         try {
-            properties.load(new BufferedReader(new FileReader(path)));
+            properties.load(new BufferedReader(new FileReader(file)));
         } catch (FileNotFoundException e) {
-            // todo: log
+            LOGGER.warning(String.format("Properties file '%s' hasn't been found", file));
         } catch (IOException e) {
-            // todo: log
+            LOGGER.log(Level.WARNING, String.format("Couldn't load properties from file '%s'", file), e);
         }
 
         return properties;
