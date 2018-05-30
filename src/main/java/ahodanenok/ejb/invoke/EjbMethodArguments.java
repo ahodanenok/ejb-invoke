@@ -21,6 +21,11 @@ public final class EjbMethodArguments {
     }
 
     public Class[] getArgumentClasses() {
-        return new Class[0];
+        Class[] classes = new Class[arguments.size()];
+        for (int i = 0; i < arguments.size(); i++) {
+            classes[i] = arguments.get(i).getClass();
+        }
+
+        return classes;
     }
 }
