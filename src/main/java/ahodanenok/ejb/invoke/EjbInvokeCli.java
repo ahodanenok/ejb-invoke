@@ -13,9 +13,15 @@ public final class EjbInvokeCli {
     private static final String CLASSPATH_FILE = "classpath";
     private static final String SYSTEM_PROPERTIES_FILE = "system.properties";
 
+    private static final int GENERIC_ERROR_CODE = 1;
+    private static final int INVOCATION_ERROR_CODE = 2;
+    private static final int INVOCATION_DESCRIPTOR_LOADING_ERROR_CODE = 5;
+    private static final int USAGE_ERROR_CODE = 10;
+
     public static void main(String[] args) {
         if (args.length == 0) {
-            // todo: show message
+            System.out.println("ERROR: provide a file with invocation descriptor");
+            System.exit(USAGE_ERROR_CODE);
             return;
         }
 
@@ -23,19 +29,25 @@ public final class EjbInvokeCli {
 
         EjbInvocationDescriptor descriptor = new JsonFormat().parse(descriptorPath, EjbInvocationDescriptor.class);
         if (descriptor == null) {
-            // todo: code
-            System.exit(-1);
+            System.exit(INVOCATION_DESCRIPTOR_LOADING_ERROR_CODE);
             return;
         }
 
         setUpSystemProperties(descriptor.getSystemProperties());
         setUpClassLoader(descriptor.getClassPath());
+        setUpExceptionHandler();
 
         EjbInvokeContext context = new EjbInvokeContext(descriptor.getContextProperties());
 
         EjbMethod remoteMethod = new EjbMethod(descriptor.getJndiName(), descriptor.getClassName(), descriptor.getMethodName());
         EjbMethodArguments methodArguments = new EjbMethodArguments(descriptor.getArguments());
-        EjbMethodResponse response = remoteMethod.call(methodArguments, context);
+        EjbMethodResponse response;
+        try {
+            response = remoteMethod.call(methodArguments, context);
+        } catch (EjbInvokeException e) {
+            System.exit(INVOCATION_ERROR_CODE);
+            return;
+        }
 
         if (response.getStatus() == EjbMethodResponse.Status.SUCCESS) {
             System.out.println(response.getData());
@@ -44,6 +56,16 @@ public final class EjbInvokeCli {
         } else {
             System.out.println("Unknown response status: " + response.getStatus());
         }
+    }
+
+    private static void setUpExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                // todo: log
+                System.exit(GENERIC_ERROR_CODE);
+            }
+        });
     }
 
     private static void setUpClassLoader(List<String> paths) {
