@@ -7,15 +7,19 @@ import ahodanenok.ejb.invoke.util.PropertiesUtils;
 import ahodanenok.ejb.invoke.util.ReflectionUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 public final class EjbInvokeCli {
+
+    static {
+        setUpLogging();
+    }
 
     private static final Logger LOGGER = Logger.getLogger(EjbInvokeCli.class.getName());
 
@@ -72,6 +76,14 @@ public final class EjbInvokeCli {
         }
     }
 
+    private static void setUpLogging() {
+        try {
+            LogManager.getLogManager().readConfiguration(EjbInvokeCli.class.getResourceAsStream("logging.properties"));
+        } catch (IOException e) {
+            System.out.print("WARN: Couldn't read logging configuration logging, reason: " + e.getMessage());
+        }
+    }
+
     private static void setUpExceptionHandler() {
         LOGGER.finer("Setting up default exception handler");
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -94,6 +106,8 @@ public final class EjbInvokeCli {
             } catch (IOException e) {
                 LOGGER.log(Level.WARNING, String.format("Can't read classpath config file '%s'", CLASSPATH_FILE), e);
             }
+        } else {
+            LOGGER.config(String.format("file '%s' doesn't exit, skipping", CLASSPATH_FILE));
         }
 
         if (LOGGER.isLoggable(Level.CONFIG)) {
@@ -129,6 +143,8 @@ public final class EjbInvokeCli {
 
                 System.setProperty(prop, fileProperties.getProperty(prop));
             }
+        } else {
+            LOGGER.config(String.format("file '%s' doesn't exit, skipping", SYSTEM_PROPERTIES_FILE));
         }
     }
 
