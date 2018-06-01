@@ -1,6 +1,7 @@
 package ahodanenok.ejb.invoke;
 
 import java.lang.reflect.Method;
+import java.util.ServiceLoader;
 import java.util.logging.Logger;
 
 public final class EjbMethod {
@@ -18,10 +19,6 @@ public final class EjbMethod {
     }
 
     public EjbMethodResponse call(EjbMethodArguments args, EjbInvokeContext context) throws EjbInvokeException {
-
-        // todo: make it impl independent, create something like NamingContextProvider and use spi
-        // todo: make some mechanism for registering before invoke intercepters
-
         Class ejbClass;
         try {
             LOGGER.info(String.format("Loading EJB class '%s'", className));
@@ -44,6 +41,16 @@ public final class EjbMethod {
             throw new EjbInvokeException(e);
         }
 
+        ServiceLoader<EjbInvocationListener> listeners =
+                ServiceLoader.load(EjbInvocationListener.class, Thread.currentThread().getContextClassLoader());
+
+        if (listeners.iterator().hasNext()) {
+            LOGGER.info("Running beforeInvoke listeners");
+            for (EjbInvocationListener listener : listeners) {
+                listener.beforeInvoke(ejbMethod, args.getArguments());
+            }
+        }
+
         long invokeStart = System.currentTimeMillis();
         try {
             LOGGER.info(String.format("Invoking EJB method: %s#%s", className, methodName));
@@ -57,6 +64,14 @@ public final class EjbMethod {
             }
 
             LOGGER.info("EJB method has been successfully invoked");
+
+            if (listeners.iterator().hasNext()) {
+                LOGGER.info("Running afterInvoke listeners");
+                for (EjbInvocationListener listener : listeners) {
+                    listener.afterInvoke(ejbMethod, result);
+                }
+            }
+
             return EjbMethodResponse.success(result, System.currentTimeMillis() - invokeStart);
         } catch (Exception e) {
             LOGGER.info("EJB threw an error: " + e.getMessage());
