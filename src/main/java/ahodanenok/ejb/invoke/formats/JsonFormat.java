@@ -14,27 +14,39 @@ import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JsonFormat {
+
+    private static final Logger LOGGER = Logger.getLogger(JsonFormat.class.getName());
 
     private Gson gson;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-    private List<SimpleDateFormat> parseDateFormats = new ArrayList<SimpleDateFormat>();;
+    private List<SimpleDateFormat> parseDateFormats = new ArrayList<SimpleDateFormat>();
 
     public JsonFormat() {
         String dateFormatPattern = System.getProperty("ejb.invoke.date.format");
         if (!StringUtils.isNullOrEmpty(dateFormatPattern)) {
-            // todo: log
             dateFormat = new SimpleDateFormat(dateFormatPattern);
         }
 
 
         String formats = System.getProperty("ejb.invoke.date.parse.formats");
         if (!StringUtils.isNullOrEmpty(formats)) {
-            // todo: log
             for (String format : formats.split(";")) {
                 parseDateFormats.add(new SimpleDateFormat(format.trim()));
+            }
+        } else {
+            parseDateFormats.add(dateFormat);
+        }
+
+        LOGGER.config("output date format: " + dateFormat.toPattern());
+        if (LOGGER.isLoggable(Level.CONFIG)) {
+            LOGGER.config("valid date format for parsing:");
+            for (SimpleDateFormat df : parseDateFormats) {
+                LOGGER.config("  " + df.toPattern());
             }
         }
     }
@@ -43,9 +55,10 @@ public class JsonFormat {
         initGson();
 
         try {
+            LOGGER.finer(String.format("Deserializing file '%s' to class '%s'", file, objClass.getName()));
             return gson.fromJson(new BufferedReader(new FileReader(file)), objClass);
         } catch (FileNotFoundException e) {
-            // todo: log
+            LOGGER.severe(String.format("File '%s' wasn't found", file));
             return null;
         }
     }
@@ -59,6 +72,7 @@ public class JsonFormat {
             return;
         }
 
+        LOGGER.finer("Initializing GSON");
         gson = new GsonBuilder()
             .serializeNulls()
             .setDateFormat(dateFormat.toPattern())
@@ -109,14 +123,14 @@ public class JsonFormat {
 
         @Override
         public void write(JsonWriter out, TimeZone value) throws IOException {
-            // todo: log
+            LOGGER.finer("writing timezone instance '%s'" + value.getID());
             out.value(value.getID());
         }
 
         @Override
         public TimeZone read(JsonReader in) throws IOException {
             String id = in.nextString();
-            // todo: log
+            LOGGER.finer(String.format("reading timezone instance '%s'", id));
             return TimeZone.getTimeZone(id);
         }
     }
@@ -125,7 +139,7 @@ public class JsonFormat {
 
         @Override
         public void write(JsonWriter out, Calendar value) throws IOException {
-            // todo: log
+            LOGGER.finer(String.format("writing calendar instance with time '%s'", value.getTime()));
             out.value(dateFormat.format(value.getTime()));
         }
 
@@ -133,16 +147,16 @@ public class JsonFormat {
         public Calendar read(JsonReader in) throws IOException {
             Date date = null;
             String val = in.nextString();
-            // todo: log
+            LOGGER.finer(String.format("reading calendar instance '%s'", val));
 
             for (int i = 0; i < parseDateFormats.size(); i++) {
                 SimpleDateFormat df = parseDateFormats.get(i);
                 try {
                     date = df.parse(val);
-                    // todo: log
+                    LOGGER.finer(String.format("date parsed, format '%s'", df.toPattern()));
                     break; // we'd better leave this place
                 } catch (ParseException e) {
-                    // todo: log
+                    LOGGER.finer(String.format("wrong date format '%s', skipping", df.toPattern()));
                 }
             }
 
@@ -160,7 +174,7 @@ public class JsonFormat {
 
         @Override
         public void write(JsonWriter out, Date value) throws IOException {
-            // todo: log
+            LOGGER.finer(String.format("writing date instance with time '%s'", value.getTime()));
             out.value(dateFormat.format(value.getTime()));
         }
 
@@ -168,16 +182,16 @@ public class JsonFormat {
         public Date read(JsonReader in) throws IOException {
             Date date = null;
             String val = in.nextString();
-            // todo: log
+            LOGGER.finer(String.format("reading date instance '%s'", val));
 
             for (int i = 0; i < parseDateFormats.size(); i++) {
                 SimpleDateFormat df = parseDateFormats.get(i);
                 try {
                     date = df.parse(val);
-                    // todo: log
+                    LOGGER.finer(String.format("date parsed, format '%s'", df.toPattern()));
                     break; // we'd better leave this place
                 } catch (ParseException e) {
-                    // todo: log
+                    LOGGER.finer(String.format("wrong date format '%s', skipping", df.toPattern()));
                 }
             }
 
@@ -193,6 +207,8 @@ public class JsonFormat {
 
         @Override
         public void write(JsonWriter out, EjbInvocationArgument value) throws IOException {
+            LOGGER.finer("writing EjbInvocationArgument instance");
+            LOGGER.finer("argument class: " + value.getValue().getClass().getName());
             out.beginObject();
             out.name("className");
             out.value(value.getValue().getClass().getName());
@@ -203,11 +219,14 @@ public class JsonFormat {
 
         @Override
         public EjbInvocationArgument read(JsonReader in) throws IOException {
+            String className = null;
             try {
-                // todo: log
+                LOGGER.finer("reading EjbInvocationArgument instance");
                 in.beginObject();
                 in.nextName();
-                Class valueClass = Class.forName(in.nextString(), true, Thread.currentThread().getContextClassLoader());
+                className = in.nextString();
+                LOGGER.finer("argument class: " + className);
+                Class valueClass = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
                 in.nextName();
                 Object value = gson.fromJson(in, valueClass);
                 in.endObject();
@@ -216,7 +235,7 @@ public class JsonFormat {
                 argument.setValue(value);
                 return argument;
             } catch (ClassNotFoundException e) {
-                // todo: log
+                LOGGER.severe(String.format("Class '%s' wasn't found, please check classpath config", className));
                 return null;
             }
         }
