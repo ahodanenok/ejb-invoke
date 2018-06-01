@@ -52,27 +52,19 @@ public final class EjbInvokeCli {
             return;
         }
 
-        setUpSystemPropertiesFromDescriptor(descriptor);
-
-        EjbInvokeContext context = new EjbInvokeContext(descriptor.getContextProperties());
-
-        EjbMethod remoteMethod = new EjbMethod(descriptor.getJndiName(), descriptor.getClassName(), descriptor.getMethodName());
-        EjbMethodArguments methodArguments = new EjbMethodArguments(descriptor.getArguments());
-        EjbMethodResponse response;
         try {
-            response = remoteMethod.call(methodArguments, context);
+            EjbMethodResponse response = EjbInvoke.call(descriptor);
+
+            if (response.getStatus() == EjbMethodResponse.Status.SUCCESS) {
+                System.out.println(format.format(response.getData()));
+            } else if (response.getStatus() == EjbMethodResponse.Status.ERROR) {
+                System.out.println(response.getError().getMessage());
+            } else {
+                System.out.println("Unknown response status: " + response.getStatus());
+            }
         } catch (EjbInvokeException e) {
             LOGGER.log(Level.SEVERE, "Invocation failed", e);
             System.exit(INVOCATION_ERROR_CODE);
-            return;
-        }
-
-        if (response.getStatus() == EjbMethodResponse.Status.SUCCESS) {
-            System.out.println(format.format(response.getData()));
-        } else if (response.getStatus() == EjbMethodResponse.Status.ERROR) {
-            System.out.println(response.getError().getMessage());
-        } else {
-            System.out.println("Unknown response status: " + response.getStatus());
         }
     }
 
@@ -145,26 +137,6 @@ public final class EjbInvokeCli {
             }
         } else {
             LOGGER.config(String.format("file '%s' doesn't exit, skipping", SYSTEM_PROPERTIES_FILE));
-        }
-    }
-
-    private static void setUpSystemPropertiesFromDescriptor(EjbInvocationDescriptor descriptor) {
-        Properties properties = descriptor.getSystemProperties();
-
-        LOGGER.config("Properties from invocation descriptor:");
-        if (LOGGER.isLoggable(Level.CONFIG) && (properties == null || properties.size() == 0)) {
-            LOGGER.config("  -- None --");
-        }
-
-        if (properties != null) {
-            // override with properties from descriptor
-            for (String prop : properties.stringPropertyNames()) {
-                if (LOGGER.isLoggable(Level.CONFIG)) {
-                    LOGGER.config(String.format("  %s: %s", prop, properties.getProperty(prop)));
-                }
-
-                System.setProperty(prop, properties.getProperty(prop));
-            }
         }
     }
 }
