@@ -1,7 +1,9 @@
 package ahodanenok.ejb.invoke;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.ServiceLoader;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class EjbMethod {
@@ -32,12 +34,16 @@ public final class EjbMethod {
 
         Method ejbMethod;
         try {
-            LOGGER.info(String.format("Searching for method '%s'", methodName));
+            if (LOGGER.isLoggable(Level.INFO)) {
+                LOGGER.info(String.format("Searching for method '%s' with arguments '%s'",
+                        methodName, Arrays.toString(args.getArgumentClasses())));
+            }
+
             ejbMethod = ejb.getClass().getMethod(methodName, args.getArgumentClasses());
         } catch (NoSuchMethodException e) {
-            LOGGER.severe(String.format(
+            LOGGER.log(Level.SEVERE, String.format(
                     "Method '%s' hasn't been found on '%s', please check that method exist and argument types match",
-                    methodName, className));
+                    methodName, className), e);
             throw new EjbInvokeException(e);
         }
 

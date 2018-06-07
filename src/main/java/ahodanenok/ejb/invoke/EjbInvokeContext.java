@@ -1,11 +1,8 @@
 package ahodanenok.ejb.invoke;
 
-import ahodanenok.ejb.invoke.util.PropertiesUtils;
-
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.rmi.PortableRemoteObject;
-import java.io.File;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,17 +11,11 @@ public class EjbInvokeContext {
 
     private static final Logger LOGGER = Logger.getLogger(EjbInvokeContext.class.getName());
 
-    private static final File PROPERTIES_FILE = new File("context.properties");
-
     private InitialContext context;
     private Properties properties;
 
     public EjbInvokeContext(Properties properties) {
-        if (PROPERTIES_FILE.exists()) {
-            this.properties = PropertiesUtils.fromFile(PROPERTIES_FILE);
-        } else {
-            this.properties = new Properties();
-        }
+        this.properties = new Properties();
 
         if (properties != null) {
             for (String prop : properties.stringPropertyNames()) {
@@ -36,15 +27,25 @@ public class EjbInvokeContext {
     public <T> T lookup(String name, Class<T> objectClass) throws EjbInvokeException {
         initContext();
 
+        T stub = null;
         try {
             LOGGER.info(String.format("Looking up object '%s'", name));
             Object obj = context.lookup(name);
-            return objectClass.cast(PortableRemoteObject.narrow(obj, objectClass));
+            stub = objectClass.cast(PortableRemoteObject.narrow(obj, objectClass));
         } catch (Exception e) {
-            LOGGER.severe(String.format("Couldn't lookup object '%s' with type '%s', reason: %s",
-                    name, objectClass.getName(), e.getMessage()));
+            LOGGER.log(Level.SEVERE, String.format("Couldn't lookup object '%s' with type '%s', reason: %s",
+                    name, objectClass.getName(), e.getMessage()), e);
             throw new EjbInvokeException(e);
         }
+
+        if (stub == null) {
+            LOGGER.severe("Ejb was found, but PortableRemoteObject.narrow returned null, " +
+                    "it could be because ejb stubs are not in classpath," +
+                    " please make sure they are present in classpath");
+            throw new EjbInvokeException("Couldn't load stub");
+        }
+
+        return stub;
     }
 
     private void initContext() {
@@ -63,7 +64,7 @@ public class EjbInvokeContext {
 
             this.context = new InitialContext(properties);
         } catch (NamingException e) {
-            LOGGER.severe(String.format("Couldn't create initial context, reason: %s", e.getMessage()));
+            LOGGER.log(Level.SEVERE, String.format("Couldn't create initial context, reason: %s", e.getMessage()), e);
             throw new EjbInvokeException(e);
         }
     }

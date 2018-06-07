@@ -27,6 +27,7 @@ public class JsonFormat {
     private List<SimpleDateFormat> parseDateFormats = new ArrayList<SimpleDateFormat>();
 
     public JsonFormat() {
+        LOGGER.config("Configuring JsonFormat");
         String dateFormatPattern = System.getProperty("ejb.invoke.date.format");
         if (!StringUtils.isNullOrEmpty(dateFormatPattern)) {
             dateFormat = new SimpleDateFormat(dateFormatPattern);
