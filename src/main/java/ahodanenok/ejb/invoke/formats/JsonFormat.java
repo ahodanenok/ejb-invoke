@@ -1,6 +1,7 @@
 package ahodanenok.ejb.invoke.formats;
 
 import ahodanenok.ejb.invoke.descriptor.EjbInvocationArgument;
+import ahodanenok.ejb.invoke.util.ReflectionUtils;
 import ahodanenok.ejb.invoke.util.StringUtils;
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
@@ -11,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -227,12 +229,13 @@ public class JsonFormat {
                 in.nextName();
                 className = in.nextString();
                 LOGGER.finer("argument class: " + className);
-                Class valueClass = Class.forName(className, true, Thread.currentThread().getContextClassLoader());
                 in.nextName();
-                Object value = gson.fromJson(in, valueClass);
+                Type type = ReflectionUtils.typeForName(className);
+                Object value = gson.fromJson(in, type);
                 in.endObject();
 
                 EjbInvocationArgument argument = new EjbInvocationArgument();
+                argument.setType(type);
                 argument.setValue(value);
                 return argument;
             } catch (ClassNotFoundException e) {
