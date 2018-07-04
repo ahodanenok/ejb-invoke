@@ -2,6 +2,7 @@ package ahodanenok.ejb.invoke;
 
 import ahodanenok.ejb.invoke.descriptor.EjbEnvironmentDescriptor;
 import ahodanenok.ejb.invoke.descriptor.EjbInvocationDescriptor;
+import ahodanenok.ejb.invoke.dns.LocalDNSInstaller;
 import ahodanenok.ejb.invoke.formats.JsonFormat;
 import ahodanenok.ejb.invoke.util.ReflectionUtils;
 
@@ -45,6 +46,7 @@ public final class EjbInvokeCli {
             return;
         }
 
+        LocalDNSInstaller.install(envDescriptor.getHosts());
         setUpSystemPropertiesFromDescriptor(envDescriptor);
         setUpClassLoaderFromDescriptor(envDescriptor);
 
